@@ -27,11 +27,12 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)#create user token
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
 red=redis.Redis()
+
 class OrderSeria(ModelSerializer):
      class Meta:
          model=Order
@@ -61,7 +62,7 @@ class UserSeria(ModelSerializer):
           return user
 
 
-
+#movieserializer
 class MovieSeria(ModelSerializer):
       theaters=MovieShipSeria(source='movieship_set',many=True,read_only=True)
       class Meta:
@@ -71,11 +72,12 @@ class MoviesSeria(ModelSerializer):
      class Meta:
         model=Movie
         fields=('id','detail','image','name')
+#return all movies         
 class Movies(generics.ListAPIView):
       serializer_class=MoviesSeria
       queryset=Movie.objects.all()
       renderer_classes=[JSONRenderer]
-
+#one movie detail look up
 class MovieDetail(generics.RetrieveAPIView):
     queryset=Movie.objects.all()
     serializer_class=MovieSeria
@@ -85,7 +87,7 @@ class MovieDetail(generics.RetrieveAPIView):
 
 
 
-
+#provide movie search functionality
 class MovieShow(generics.ListAPIView):
      queryset=Movie.objects.all()
      serializer_class=MovieSeria
@@ -99,7 +101,7 @@ class CheeseUserForm(ModelForm):
          model=CheeseUser
          fields=['name','email','password']
 
-
+#logup functionality
 class UserLogup(generics.CreateAPIView):
         queryset=User.objects.all()
         serializer_class=UserSeria 
@@ -126,6 +128,7 @@ def show(request):
           
           request.session[item]=1
           return HttpResponse('hello')
+#check username if is taken          
 class Check(APIView):
      parser_classes=[JSONParser]
      renderer_classes=[JSONRenderer]
@@ -135,7 +138,7 @@ class Check(APIView):
               return Response({'taken':True})
          else:
               return Response({'taken':False})
-
+#add shoppingcar items to session
 class Shop(APIView):
      
     
@@ -153,7 +156,7 @@ class Shop(APIView):
           
 
           return Response('ok')
-
+#return shoppingcars items to user
 class ShoppingCar(APIView):
      
       renderer_classes=[JSONRenderer] 
@@ -184,6 +187,7 @@ class CheckOut(APIView):
                      return Response(status=status.HTTP_201_CREATED)
            
               return Response(orderseria.errors,status=status.HTTP_400_BAD_REQUEST)
+#return all orders of a logined in user
 class Orders(generics.ListAPIView):
         serializer_class=OrderSeria
         renderer_classes=[JSONRenderer]
